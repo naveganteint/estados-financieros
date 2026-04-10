@@ -1,0 +1,120 @@
+
+"""
+
+
+
+
+# esfi_app_optionmenu.py
+import streamlit as st
+import pandas as pd
+from streamlit_option_menu import option_menu
+import numpy as np  # añadir al inicio de tu archivo si no está
+
+
+st.set_page_config(
+    page_title="Estados Financieros",
+    layout="wide",   # <--- esto hace que la zona principal sea más ancha
+    initial_sidebar_state="expanded"
+)
+
+
+
+
+
+# Inicializar session_state
+if "hojas" not in st.session_state:
+    st.session_state.hojas = {}  # Diccionario para guardar cada hoja
+
+
+
+# --- Fondo completo del sidebar blanco ---
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #E5F7FA;  /* fondo completo blanco */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+
+
+# --- Sidebar con option_menu y colores ---
+with st.sidebar:
+    pagina_actual = option_menu(
+        menu_title="Menú Principal",
+        options=["Cargar Excel", "Ver Datos", "Página 3", "Página 4", "Página 5", "Página 6"],
+        icons=["file-earmark-excel", "table", "bar-chart-line", "graph-up", "calculator", "diagram-3"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical",
+        styles={
+            "container": {"padding": "10px", "background-color": "#E5F7FA"},          # fondo del sidebar a
+            "icon": {"color": "blue", "font-size": "16px"},                            # color iconos
+            "nav-link": {"font-size": "16px", "color": "#000000", "margin":"5px 0px","font-weight": "bold"}, # texto
+            "nav-link-selected": {"background-color": "#B5CAF2", "color": "#000000", "font-weight":"bold"}  # fondo verde, texto violeta
+            
+        }
+    )
+
+
+
+
+
+
+# --- Página 1: Cargar Excel ---
+if pagina_actual == "Cargar Excel":
+    st.title("Cargar archivo Excel")
+    uploaded_file = st.file_uploader("Selecciona tu archivo Excel", type=["xlsx"])
+    if uploaded_file:
+        # Leer todas las hojas
+        xls = pd.ExcelFile(uploaded_file)
+        for sheet_name in xls.sheet_names:
+            df = xls.parse(sheet_name)
+            st.session_state.hojas[sheet_name] = df
+        st.success(f"Se cargaron {len(st.session_state.hojas)} hojas: {', '.join(st.session_state.hojas.keys())}")
+
+# --- Página 2: Ver Datos ---
+elif pagina_actual == "Ver Datos":
+    st.title("Datos cargados")
+    if st.session_state.hojas:
+        for nombre_hoja, df in st.session_state.hojas.items():
+            st.markdown(f'<h3 style="color: DodgerBlue; background-color: #E5F7FA; padding: 5px; border-radius: 5px;"> Tabla: {nombre_hoja} </h3>',unsafe_allow_html=True)
+            # Limpiar la tabla: reemplazar '—' por NaN y luego mostrar guiones en la tabla
+            df_limpio = df.copy()
+            df_limpio.replace('—', np.nan, inplace=True)
+            df_mostrar = df_limpio.astype(str).replace("nan", "-")
+            st.table(df_mostrar)
+    else:
+        st.info("Primero sube un archivo en la página 'Cargar Excel'")
+
+
+
+
+
+
+
+
+# --- Páginas 3 a 5 ---
+elif pagina_actual == "Página 3":
+    st.title("Página 3 - Ratios / Gráficos")
+elif pagina_actual == "Página 4":
+    st.title("Página 4 - Ratios / Gráficos")
+elif pagina_actual == "Página 5":
+    st.title("Página 5 - Ratios / Gráficos")
+
+
+
+
+# --- Página 6 con título y ratios coloreados ---
+elif pagina_actual == "Página 6":
+    st.markdown('<h1 style="color: green;">Página 6 - Ratios / Gráficos</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: red;">Ratio de liquidez: 1.5</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color: blue;">Ratio de rentabilidad: 12%</p>', unsafe_allow_html=True)
+
+
+    """
